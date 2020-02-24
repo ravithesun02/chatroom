@@ -54,15 +54,16 @@ class Camera extends PureComponent {
             if (status !== 'READY') return <PendingView />;
             return (
               <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
-              <TouchableOpacity onPress={() => this.state.recordingVideo ? this.stopRecording(camera) : this.takePicture(camera)} onLongPress={()=>this.recordVideo(camera)} style={styles.capture}>
-                <Text style={{ fontSize: 14 }}> SNAP </Text>
+              <TouchableOpacity onPress={() => this.state.recordingVideo ? this.stopVideo(camera) : this.takePicture(camera)} onLongPress={()=>this.recordVideo(camera)} style={styles.capture}>
+                <Text style={{ fontSize: 14 }}> Capture </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={()=>this.toggleFlash()} >
-                <Text >Flash Togler</Text>
+              <TouchableOpacity onPress={()=>this.toggleFlash()} style={styles.capture}>
+                <Text  style={{ fontSize: 14 }}> Flash </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={()=>this.toggleCamera()} >
-                <Text >camera toggler</Text>
+              <TouchableOpacity onPress={()=>this.toggleCamera()} style={styles.capture}>
+                <Text style={{ fontSize: 14 }} >camera toggler</Text>
               </TouchableOpacity>
+              
             </View>
             );
           }}
@@ -127,23 +128,31 @@ class Camera extends PureComponent {
       deviceOrientation: 1,
     };
     this.setState({
-      recordVideo:true
+      recordingVideo:true
     });
     console.log("Recording starts");
-    const { uri, codec } = await camera.recordAsync(options);
+    camera.recordAsync(options)
+    .then((data)=>{
+      console.log(data.uri);
+    })
+    .catch((error)=>{
+      console.log(error);
+    });
 
-    console.log(uri);
+    //console.log(uri);
 
   }
 
-  stopRecording= function(camera){
-   const data= camera.stopRecording();
+  stopVideo= function(camera){
     this.setState({
       recordVideo:false
     });
+   camera.stopRecording();
+
+   
 
     console.log("finished recording");
-    console.log(data.uri);
+    //console.log(data.uri);
   }
 }
 
