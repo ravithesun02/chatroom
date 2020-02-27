@@ -1,9 +1,8 @@
 'use strict';
 import React, { PureComponent } from 'react';
-import {StyleSheet, Text,  View,TouchableOpacity } from 'react-native';
+import {StyleSheet, Text,  View,TouchableOpacity ,PermissionsAndroid,Alert} from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Button,Icon } from 'native-base';
+import CameraRoll from "@react-native-community/cameraroll";
 
 const PendingView = () => (
   <View
@@ -51,7 +50,9 @@ class Camera extends PureComponent {
           defaultVideoQuality={RNCamera.Constants.VideoQuality["720p"]}
         >
           {({ camera, status,recordAudioPermissionStatus }) => {
-            if (status !== 'READY') return <PendingView />;
+            if (status !== 'READY' && this.storagePermission()!=true){
+              return <PendingView />
+            };
             return (
               <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
               <TouchableOpacity onPress={() => this.state.recordingVideo ? this.stopVideo(camera) : this.takePicture(camera)} onLongPress={()=>this.recordVideo(camera)} style={styles.capture}>
@@ -70,6 +71,30 @@ class Camera extends PureComponent {
         </RNCamera>
       </View>
     );
+  }
+
+  async  storagePermission() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: "Storage Permission",
+          message: "App needs access to memory to download the file "
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        
+        return true;
+      } else {
+        Alert.alert(
+          "Permission Denied!",
+          "You need to give storage permission to download the file"
+        );
+        return false;
+      }
+    } catch (err) {
+      console.warn(err);
+    }
   }
 
   toggleCamera(){
@@ -92,6 +117,7 @@ class Camera extends PureComponent {
     const data = await camera.takePictureAsync(options);
     //  eslint-disable-next-line
     console.log(data.uri);
+    CameraRoll.saveToCameraRoll(data.uri);
   };
 
   toggleFlash(){
@@ -134,6 +160,7 @@ class Camera extends PureComponent {
     camera.recordAsync(options)
     .then((data)=>{
       console.log(data.uri);
+      CameraRoll.saveToCameraRoll(data.uri);
     })
     .catch((error)=>{
       console.log(error);
